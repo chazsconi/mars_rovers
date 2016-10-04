@@ -3,46 +3,52 @@ defmodule MarsRovers do
     defexception message: "rover moved outside of plateau"
   end
 
-  def execute_commands(state, [], grid) do
-    state
+  defmodule State do
+    defstruct x: nil, y: nil, d: nil
   end
 
-  def execute_commands(state, [command | commands], grid) do
+  def execute_commands({x, y, d}, commands, grid) do
+    state = execute_commands(%State{ x: x, y: y, d: d}, commands, grid)
+    {state.x, state.y, state.d}
+  end
+
+  def execute_commands(%State{}=state, [], _), do: state
+  def execute_commands(%State{}=state, [command | commands], grid) do
       execute_command(state, command, grid)
       |> execute_commands(commands, grid)
   end
 
-  def execute_command({x, y, d}, "L", _) do
+  def execute_command(%State{d: d}=state, "L", _) do
     case d do
-      "N" -> {x, y, "W"}
-      "S" -> {x, y, "E"}
-      "E" -> {x, y, "N"}
-      "W" -> {x, y, "S"}
+      "N" -> %State{state | d: "W"}
+      "S" -> %State{state | d: "E"}
+      "E" -> %State{state | d: "N"}
+      "W" -> %State{state | d: "S"}
     end
   end
 
-  def execute_command({x, y, d}, "R", _) do
+  def execute_command(%State{d: d}=state, "R", _) do
     case d do
-      "N" -> {x, y, "E"}
-      "S" -> {x, y, "W"}
-      "E" -> {x, y, "S"}
-      "W" -> {x, y, "N"}
+      "N" -> %State{state | d: "E"}
+      "S" -> %State{state | d: "W"}
+      "E" -> %State{state | d: "S"}
+      "W" -> %State{state | d: "N"}
     end
   end
 
-  def execute_command({x, y, d}, "M", grid) do
-    case d do
-      "N" -> {x, y + 1, d}
-      "S" -> {x, y - 1, d}
-      "E" -> {x + 1, y, d}
-      "W" -> {x - 1, y, d}
+  def execute_command(%State{}=s, "M", grid) do
+    case s.d do
+      "N" -> %State{s | y: s.y + 1}
+      "S" -> %State{s | y: s.y - 1}
+      "E" -> %State{s | x: s.x + 1}
+      "W" -> %State{s | x: s.x - 1}
     end
     |> verify_in_bounds(grid)
   end
 
-  def verify_in_bounds({x, y, d}, {max_x, max_y}) do
+  def verify_in_bounds(%State{x: x, y: y}=state, {max_x, max_y}) do
     if x in 0..max_x && y in 0..max_y do
-      {x, y, d}
+      state
     else
       raise OutOfBoundsError
     end
