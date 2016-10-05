@@ -4,44 +4,40 @@ defmodule MarsRovers do
   end
 
   defmodule State do
-    defstruct x: nil, y: nil, d: nil
+    defstruct x: nil, y: nil, a: nil
   end
 
+  def cardinal_to_angle(cardinal), do: %{"N" => 0, "E" => 90, "S" => 180, "W" => 270}[cardinal]
+  def angle_to_cardinal(angle), do: %{0 => "N", 90 => "E", 180 => "S", 270 => "W"}[angle]
+
+  def normalise_angle(angle) when angle < 0, do: normalise_angle(360+angle)
+  def normalise_angle(angle), do: rem(angle, 360)
+
   def execute_commands({x, y, d}, commands, grid) do
-    state = execute_commands(%State{ x: x, y: y, d: d}, commands, grid)
-    {state.x, state.y, state.d}
+    state = execute_commands(%State{ x: x, y: y, a: cardinal_to_angle(d)}, commands, grid)
+    {state.x, state.y, angle_to_cardinal(state.a)}
   end
 
   def execute_commands(%State{}=state, [], _), do: state
   def execute_commands(%State{}=state, [command | commands], grid) do
-      execute_command(state, command, grid)
-      |> execute_commands(commands, grid)
+    execute_command(state, command, grid)
+    |> execute_commands(commands, grid)
   end
 
-  def execute_command(%State{d: d}=state, "L", _) do
-    case d do
-      "N" -> %State{state | d: "W"}
-      "S" -> %State{state | d: "E"}
-      "E" -> %State{state | d: "N"}
-      "W" -> %State{state | d: "S"}
-    end
+  def execute_command(%State{a: a}=state, "L", _) do
+    %{state | a: normalise_angle(a - 90)}
   end
 
-  def execute_command(%State{d: d}=state, "R", _) do
-    case d do
-      "N" -> %State{state | d: "E"}
-      "S" -> %State{state | d: "W"}
-      "E" -> %State{state | d: "S"}
-      "W" -> %State{state | d: "N"}
-    end
+  def execute_command(%State{a: a}=state, "R", _) do
+    %{state | a: normalise_angle(a + 90)}
   end
 
   def execute_command(%State{}=s, "M", grid) do
-    case s.d do
-      "N" -> %State{s | y: s.y + 1}
-      "S" -> %State{s | y: s.y - 1}
-      "E" -> %State{s | x: s.x + 1}
-      "W" -> %State{s | x: s.x - 1}
+    case s.a do
+      0   -> %State{s | y: s.y + 1}
+      180 -> %State{s | y: s.y - 1}
+      90  -> %State{s | x: s.x + 1}
+      270 -> %State{s | x: s.x - 1}
     end
     |> verify_in_bounds(grid)
   end
