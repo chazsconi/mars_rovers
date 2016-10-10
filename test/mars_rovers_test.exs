@@ -18,12 +18,11 @@ defmodule MarsRoversTest do
     assert MarsRovers.execute_commands({1, 1, "W"}, ~w(M M), {5, 5}) == {0, 1, "W"}
   end
 
-  @tag :skip
   test "executing multiple rovers on a plateau" do
     instructions = [
       {{1, 2, "N"}, ~w(L M L M L M L M M)},
       {{3, 3, "E"}, ~w(M M R M M R M R R M)}
     ]
-    assert MarsRovers.deploy_rovers({{5, 5}, []}, instructions) == [{1, 3, "N"}, {5, 1, "E"}]
+    assert MarsRovers.deploy_rovers({5, 5}, instructions) == [{1, 3, "N"}, {5, 1, "E"}]
   end
 end
