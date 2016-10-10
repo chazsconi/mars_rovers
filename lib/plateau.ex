@@ -3,6 +3,10 @@ defmodule MarsRovers.Plateau do
   alias MarsRovers.Rover
   defstruct max_x: nil, max_y: nil, rovers: []
 
+  def add_rover(%Plateau{}=p, rover) do
+    %Plateau{p | rovers: [rover | p.rovers]}
+  end
+
   @doc "Tries to move a rover on the plateau.  Returns {:ok, new_position} or {:ok, error}"
   def move_rover(%Plateau{}=plateau, %Rover{}=s) do
     {s.x, s.y}

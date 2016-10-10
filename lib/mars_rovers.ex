@@ -19,9 +19,11 @@ defmodule MarsRovers do
   end
 
   def execute_commands(rover_init, commands, %Plateau{}=plateau) do
+    rover = create_rover(rover_init)
+    plateau = Plateau.add_rover(plateau, rover)
+
     state =
-      rover_init
-      |> create_rover
+      rover
       |> Rover.execute_commands(commands, plateau)
     {state.x, state.y, state.d}
   end
