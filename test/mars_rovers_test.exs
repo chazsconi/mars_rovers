@@ -15,9 +15,7 @@ defmodule MarsRoversTest do
   end
 
   test "error is raised when rover moves outside of plateau" do
-    assert_raise MarsRovers.OutOfBoundsError, fn ->
-      MarsRovers.execute_commands({1, 1, "W"}, ~w(M M), {5, 5})
-    end
+    assert MarsRovers.execute_commands({1, 1, "W"}, ~w(M M), {5, 5}) == {0, 1, "W"}
   end
 
   @tag :skip

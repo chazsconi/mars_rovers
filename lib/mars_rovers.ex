@@ -1,10 +1,6 @@
 defmodule MarsRovers do
-  defmodule OutOfBoundsError do
-    defexception message: "rover moved outside of plateau"
-  end
-
   defmodule State do
-    defstruct x: nil, y: nil, d: nil
+    defstruct x: nil, y: nil, d: nil, last_move_valid: true
   end
 
   def execute_commands({x, y, d}, commands, grid) do
@@ -14,7 +10,8 @@ defmodule MarsRovers do
 
   def execute_commands(%State{}=state, [], _), do: state
   def execute_commands(%State{}=state, [command | commands], grid) do
-      execute_command(state, command, grid)
+      state
+      |> execute_command(command, grid)
       |> execute_commands(commands, grid)
   end
 
@@ -37,20 +34,23 @@ defmodule MarsRovers do
   end
 
   def execute_command(%State{}=s, "M", grid) do
-    case s.d do
-      "N" -> %State{s | y: s.y + 1}
-      "S" -> %State{s | y: s.y - 1}
-      "E" -> %State{s | x: s.x + 1}
-      "W" -> %State{s | x: s.x - 1}
+    {new_x,new_y} = new_position(s)
+    case verify_in_bounds({new_x, new_y}, grid) do
+      :ok    -> %State{ s | x: new_x, y: new_y, last_move_valid: true}
+      :error -> %State{ s | last_move_valid: false}
     end
-    |> verify_in_bounds(grid)
   end
 
-  def verify_in_bounds(%State{x: x, y: y}=state, {max_x, max_y}) do
-    if x in 0..max_x && y in 0..max_y do
-      state
-    else
-      raise OutOfBoundsError
+  defp new_position(%State{}=s) do
+    case s.d do
+      "N" -> {s.x, s.y + 1}
+      "S" -> {s.x, s.y - 1}
+      "E" -> {s.x + 1, s.y}
+      "W" -> {s.x - 1, s.y}
     end
+  end
+
+  defp verify_in_bounds({x, y}, {max_x, max_y}) do
+    if x in 0..max_x && y in 0..max_y, do: :ok, else: :error
   end
 end
