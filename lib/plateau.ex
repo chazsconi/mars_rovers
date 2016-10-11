@@ -1,14 +1,42 @@
 defmodule MarsRovers.Plateau do
+  use GenServer
   alias MarsRovers.Plateau
   alias MarsRovers.Rover
   defstruct max_x: nil, max_y: nil, rovers: []
 
-  def add_rover(%Plateau{}=p, rover) do
-    %Plateau{p | rovers: [rover | p.rovers]}
+  # Client API
+  @doc "Creates the Plateau and registers the process as Plateau"
+  def create({max_x, max_y}) do
+    {:ok, _pid} = GenServer.start_link(Plateau,%Plateau{max_x: max_x, max_y: max_y}, [name: Plateau])
+    :ok
   end
 
-  @doc "Tries to move a rover on the plateau.  Returns {:ok, new_position} or {:ok, error}"
-  def move_rover(%Plateau{}=plateau, %Rover{}=s) do
+  @doc "Adds a rover to the Plateau"
+  def add_rover(rover_pid) do
+    :ok = GenServer.call(Plateau, {:add_rover, rover_pid})
+    rover_pid
+  end
+
+  @doc "Attempts to move a rover on the plateau.  Updates the rovers position or sets last_move_valid to false"
+  def move_rover(%Rover{} = rover_state) do
+    GenServer.call(Plateau, {:move_rover, rover_state})
+  end
+
+  # Callbacks
+  def handle_call({:add_rover, rover_pid}, _from, state) do
+    {:reply, :ok, do_add_rover(state, rover_pid)}
+  end
+
+  def handle_call({:move_rover, %Rover{}=rover_state}, _from, state) do
+    {:reply, do_move_rover(state, rover_state), state}
+  end
+
+  # Internal
+  defp do_add_rover(%Plateau{}=p, rover_pid) do
+    %Plateau{p | rovers: [rover_pid | p.rovers]}
+  end
+
+  defp do_move_rover(%Plateau{}=plateau, %Rover{}=s) do
     {s.x, s.y}
     |> new_position(s.d)
     |> verify_in_bounds(plateau)
@@ -30,6 +58,4 @@ defmodule MarsRovers.Plateau do
       {:error, :out_of_bounds}
     end
   end
-
-
 end

@@ -3,31 +3,30 @@ defmodule MarsRovers do
   alias MarsRovers.Plateau
 
   def deploy_rovers(plateau_limits, rover_instructions) do
-    plateau = create_plateau(plateau_limits)
+    :ok = Plateau.create(plateau_limits)
     Enum.map(rover_instructions,
       fn({rover_init, commands}) ->
-        execute_commands(rover_init, commands, plateau)
+        deploy_rover(rover_init, commands)
       end)
   end
 
-  def create_plateau({max_x, max_y}) do
-    %Plateau{max_x: max_x, max_y: max_y}
+  def deploy_rover(%Rover{}=rover_state, commands, plateau_limits) do
+    :ok = Plateau.create(plateau_limits)
+    deploy_rover(rover_state, commands)
   end
 
-  def create_rover({x, y, d}) do
-    %Rover{ x: x, y: y, d: d}
+  def deploy_rover(%Rover{}=rover_state, commands) do
+    rover_state
+    |> Rover.new
+    |> Plateau.add_rover
+    |> execute_commands(commands)
+    |> Rover.state
   end
 
-  def execute_commands(rover_init, commands, %Plateau{}=plateau) do
-    rover = create_rover(rover_init)
-    plateau = Plateau.add_rover(plateau, rover)
-
-    state =
-      rover
-      |> Rover.execute_commands(commands, plateau)
-    {state.x, state.y, state.d}
-  end
-  def execute_commands(rover_init, commands, plateau_limits) do
-    execute_commands(rover_init, commands, create_plateau(plateau_limits))
+  def execute_commands(rover_pid, []), do: rover_pid
+  def execute_commands(rover_pid, [command | commands]) do
+    rover_pid
+    |> Rover.execute_command(command)
+    |> execute_commands(commands)
   end
 end
