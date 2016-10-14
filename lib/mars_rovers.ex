@@ -27,6 +27,13 @@ defmodule MarsRovers do
   def execute_commands(rover_pid, [command | commands]) do
     rover_pid
     |> Rover.execute_command(command)
+    |> visualise
     |> execute_commands(commands)
+  end
+
+  def visualise(rover_pid) do
+    :timer.sleep(1000)
+    MarsRovers.PlateauVisualiserCLI.visualise
+    rover_pid
   end
 end

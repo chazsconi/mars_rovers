@@ -4,6 +4,10 @@ defmodule MarsRovers.Plateau do
   alias MarsRovers.Rover
   defstruct max_x: nil, max_y: nil, rovers: []
 
+  defmodule VisualState do
+    defstruct cells: %{}, size: {0,0}
+  end
+
   # Client API
   @doc "Creates the Plateau and registers the process as Plateau"
   def create({max_x, max_y}) do
@@ -22,6 +26,20 @@ defmodule MarsRovers.Plateau do
     GenServer.call(Plateau, {:move_rover, rover_state})
   end
 
+  def state do
+    GenServer.call(Plateau, :state)
+  end
+
+  def visual_state do
+    state = state()
+    cells =
+      Enum.reduce(state.rovers, %{}, fn(rover_pid, acc) ->
+        rover_state = Rover.state(rover_pid)
+        Map.put(acc, {rover_state.x, rover_state.y}, rover_state)
+      end)
+    %VisualState{ cells: cells, size: {state.max_x, state.max_y}}
+  end
+
   # Callbacks
   def handle_call({:add_rover, rover_pid}, _from, state) do
     {:reply, :ok, do_add_rover(state, rover_pid)}
@@ -29,6 +47,10 @@ defmodule MarsRovers.Plateau do
 
   def handle_call({:move_rover, %Rover{}=rover_state}, _from, state) do
     {:reply, do_move_rover(state, rover_state), state}
+  end
+
+  def handle_call(:state, _from, state) do
+    {:reply, state, state}
   end
 
   # Internal
