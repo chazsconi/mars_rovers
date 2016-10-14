@@ -1,6 +1,12 @@
 defmodule MarsRovers.PlateauVisualiserCLI do
+  use GenEvent
   alias MarsRovers.{Rover, Plateau}
   import IO.ANSI, only: [clear: 0, home: 0]
+
+  def handle_event(:rover_moved, state) do
+    visualise
+    {:ok, state}
+  end
 
   def visualise do
     IO.puts [clear, home, to_string(Plateau.visual_state)]

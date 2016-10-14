@@ -2,8 +2,14 @@ defmodule MarsRovers do
   alias MarsRovers.Rover
   alias MarsRovers.Plateau
 
-  def deploy_rovers(plateau_limits, rover_instructions) do
+  def setup(plateau_limits) do
     :ok = Plateau.create(plateau_limits)
+    {:ok, pid} = GenEvent.start_link(name: :event_manager)
+    :ok = GenEvent.add_handler(pid, MarsRovers.PlateauVisualiserCLI, [])
+  end
+
+  def deploy_rovers(plateau_limits, rover_instructions) do
+    setup(plateau_limits)
     Enum.map(rover_instructions,
       fn({rover_init, commands}) ->
         deploy_rover(rover_init, commands)
@@ -11,7 +17,7 @@ defmodule MarsRovers do
   end
 
   def deploy_rover(%Rover{}=rover_state, commands, plateau_limits) do
-    :ok = Plateau.create(plateau_limits)
+    setup(plateau_limits)
     deploy_rover(rover_state, commands)
   end
 
@@ -27,8 +33,13 @@ defmodule MarsRovers do
   def execute_commands(rover_pid, [command | commands]) do
     rover_pid
     |> Rover.execute_command(command)
-    |> visualise
+    |> slow_down
     |> execute_commands(commands)
+  end
+
+  def slow_down(rover_pid) do
+    :timer.sleep(50)
+    rover_pid
   end
 
   def visualise(rover_pid) do

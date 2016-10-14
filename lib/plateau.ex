@@ -23,7 +23,8 @@ defmodule MarsRovers.Plateau do
 
   @doc "Attempts to move a rover on the plateau.  Updates the rovers position or sets last_move_valid to false"
   def move_rover(%Rover{} = rover_state) do
-    GenServer.call(Plateau, {:move_rover, rover_state})
+    result = GenServer.call(Plateau, {:move_rover, rover_state})
+    result
   end
 
   def state do
