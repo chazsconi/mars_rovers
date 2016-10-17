@@ -87,10 +87,12 @@ defmodule MarsRovers.Plateau do
   end
 
   defp verify_in_bounds({x, y}, %Plateau{max_x: max_x, max_y: max_y}) do
-    if x in 0..max_x && y in 0..max_y do
-      {:ok, {x,y}}
-    else
-      {:error, :out_of_bounds}
+    cond do
+      x < 0     -> {:wall_collision, "W"}
+      x > max_x -> {:wall_collision, "E"}
+      y < 0     -> {:wall_collision, "S"}
+      y > max_y -> {:wall_collision, "N"}
+      true      -> {:ok, {x,y}}
     end
   end
 

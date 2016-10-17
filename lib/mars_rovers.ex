@@ -21,6 +21,8 @@ defmodule MarsRovers do
   def deploy_rover(%Rover{}=rover_state, {_,_}=plateau_limits, turns) do
     :ok = setup(plateau_limits)
     rover_pid = deploy_rover(rover_state)
+    MarsRovers.PlateauVisualiserCLI.visualise
+    IO.puts "Initial state"
     :ok = run_turns(turns)
     Rover.state(rover_pid)
   end
@@ -33,7 +35,7 @@ defmodule MarsRovers do
 
   def run_turns(0), do: :ok
   def run_turns(turns) do
-    IO.puts "Turns #{turns}"
+    IO.puts "Turn start #{turns}"
     Plateau.run_turn
     slow_down
     run_turns(turns - 1)

@@ -35,38 +35,39 @@ defmodule MarsRovers.Rover do
   end
 
   # Command queue is empty, reload it
-  defp do_execute_command(%Rover{command_queue: [], commander: commander}=state) do
-    %Rover{state | command_queue: commander.on_idle}
+  defp do_execute_command(%Rover{command_queue: [], commander: commander}=s) do
+    %Rover{s | command_queue: commander.on_idle}
     |> do_execute_command
   end
 
-  defp do_execute_command(%Rover{command_queue: [command | commands]}=state) do
-    state = do_execute_command(state, command)
-    %Rover{ state | command_queue: commands}
-  end
-
-  defp do_execute_command(%Rover{d: d}=state, "L") do
+  defp do_execute_command(%Rover{d: d, command_queue: ["L" | commands]}=s) do
     case d do
-      "N" -> %Rover{state | d: "W"}
-      "S" -> %Rover{state | d: "E"}
-      "E" -> %Rover{state | d: "N"}
-      "W" -> %Rover{state | d: "S"}
+      "N" -> %Rover{s | d: "W", command_queue: commands}
+      "S" -> %Rover{s | d: "E", command_queue: commands}
+      "E" -> %Rover{s | d: "N", command_queue: commands}
+      "W" -> %Rover{s | d: "S", command_queue: commands}
     end
   end
 
-  defp do_execute_command(%Rover{d: d}=state, "R") do
+  defp do_execute_command(%Rover{d: d, command_queue: ["R" | commands]}=s) do
     case d do
-      "N" -> %Rover{state | d: "E"}
-      "S" -> %Rover{state | d: "W"}
-      "E" -> %Rover{state | d: "S"}
-      "W" -> %Rover{state | d: "N"}
+      "N" -> %Rover{s | d: "E", command_queue: commands}
+      "S" -> %Rover{s | d: "W", command_queue: commands}
+      "E" -> %Rover{s | d: "S", command_queue: commands}
+      "W" -> %Rover{s | d: "N", command_queue: commands}
     end
   end
 
-  defp do_execute_command(%Rover{}=s, "M") do
+  defp do_execute_command(%Rover{command_queue: ["M" | commands]}=s) do
     case Plateau.move_rover(s) do
-      {:ok, {new_x, new_y}}  -> %Rover{ s | last_move_valid: true, x: new_x, y: new_y}
-      {:error, _}            -> %Rover{ s | last_move_valid: false}
+      {:ok, {new_x, new_y}}  -> %Rover{ s | last_move_valid: true, x: new_x, y: new_y, command_queue: commands}
+      {:wall_collision, wall} ->
+        %Rover{ s | last_move_valid: false}
+        |> wall_collision(wall)
     end
+  end
+
+  defp wall_collision(%Rover{commander: commander}=state, wall) do
+    %Rover{state | command_queue: commander.on_wall_collision(wall)}
   end
 end
