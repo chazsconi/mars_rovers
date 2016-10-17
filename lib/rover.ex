@@ -4,7 +4,7 @@ defmodule MarsRovers.Rover do
   alias MarsRovers.Rover
   alias MarsRovers.Plateau
 
-  defstruct x: nil, y: nil, d: nil, last_move_valid: true
+  defstruct x: nil, y: nil, d: nil, commander: nil, command_queue: [], last_move_valid: true
 
   # Client API
   @doc "Creates a new rover"
@@ -13,9 +13,8 @@ defmodule MarsRovers.Rover do
     pid
   end
 
-  @doc "Executes a command for the rover"
-  def execute_command(pid, command) do
-    :ok = GenServer.call(pid, {:execute_command, command})
+  def execute_command(pid) do
+    :ok = GenServer.call(pid, :execute_command)
     GenEvent.notify(:event_manager, :rover_moved)
     pid
   end
@@ -26,13 +25,24 @@ defmodule MarsRovers.Rover do
   end
 
   # Server API
-  def handle_call({:execute_command, command}, _from, state) do
-    state = do_execute_command(state, command)
+  def handle_call(:execute_command, _from, state) do
+    state = do_execute_command(state)
     {:reply, :ok, state}
   end
 
   def handle_call(:state, _from, state) do
     {:reply, state, state}
+  end
+
+  # Command queue is empty, reload it
+  defp do_execute_command(%Rover{command_queue: [], commander: commander}=state) do
+    %Rover{state | command_queue: commander.on_idle}
+    |> do_execute_command
+  end
+
+  defp do_execute_command(%Rover{command_queue: [command | commands]}=state) do
+    state = do_execute_command(state, command)
+    %Rover{ state | command_queue: commands}
   end
 
   defp do_execute_command(%Rover{d: d}=state, "L") do

@@ -32,6 +32,6 @@ defmodule MarsRovers.PlateauVisualiserCLI do
         "W" -> "<"
       end
     end
-    defp cell_to_string(_), do: "-"
+    defp cell_to_string(_), do: "."
   end
 end

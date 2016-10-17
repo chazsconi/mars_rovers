@@ -8,43 +8,38 @@ defmodule MarsRovers do
     :ok = GenEvent.add_handler(pid, MarsRovers.PlateauVisualiserCLI, [])
   end
 
-  def deploy_rovers(plateau_limits, rover_instructions) do
+  def deploy_rovers(rover_instructions, plateau_limits, turns) do
     setup(plateau_limits)
-    Enum.map(rover_instructions,
-      fn({rover_init, commands}) ->
-        deploy_rover(rover_init, commands)
+    rover_pids = Enum.map(rover_instructions,
+      fn(rover_init) ->
+        deploy_rover(rover_init)
       end)
+    :ok = run_turns(turns)
+    Enum.map(rover_pids, fn( rover_pid) -> Rover.state(rover_pid) end)
   end
 
-  def deploy_rover(%Rover{}=rover_state, commands, plateau_limits) do
-    setup(plateau_limits)
-    deploy_rover(rover_state, commands)
+  def deploy_rover(%Rover{}=rover_state, {_,_}=plateau_limits, turns) do
+    :ok = setup(plateau_limits)
+    rover_pid = deploy_rover(rover_state)
+    :ok = run_turns(turns)
+    Rover.state(rover_pid)
   end
 
-  def deploy_rover(%Rover{}=rover_state, commands) do
+  def deploy_rover(%Rover{}=rover_state) do
     rover_state
     |> Rover.new
     |> Plateau.add_rover
-    |> execute_commands(commands)
-    |> Rover.state
   end
 
-  def execute_commands(rover_pid, []), do: rover_pid
-  def execute_commands(rover_pid, [command | commands]) do
-    rover_pid
-    |> Rover.execute_command(command)
-    |> slow_down
-    |> execute_commands(commands)
+  def run_turns(0), do: :ok
+  def run_turns(turns) do
+    IO.puts "Turns #{turns}"
+    Plateau.run_turn
+    slow_down
+    run_turns(turns - 1)
   end
 
-  def slow_down(rover_pid) do
+  def slow_down do
     :timer.sleep(50)
-    rover_pid
-  end
-
-  def visualise(rover_pid) do
-    :timer.sleep(1000)
-    MarsRovers.PlateauVisualiserCLI.visualise
-    rover_pid
   end
 end

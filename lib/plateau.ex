@@ -27,6 +27,12 @@ defmodule MarsRovers.Plateau do
     result
   end
 
+  @doc "Runs a turn on the plateau"
+  def run_turn do
+    state.rovers
+    |> run_turn_for_each_rover
+  end
+
   def state do
     GenServer.call(Plateau, :state)
   end
@@ -59,6 +65,12 @@ defmodule MarsRovers.Plateau do
     %Plateau{p | rovers: [rover_pid | p.rovers]}
   end
 
+  defp run_turn_for_each_rover(rovers) do
+    Enum.each(rovers, fn rover_pid ->
+      Rover.execute_command(rover_pid)
+    end)
+  end
+
   defp do_move_rover(%Plateau{}=plateau, %Rover{}=s) do
     {s.x, s.y}
     |> new_position(s.d)
@@ -81,4 +93,5 @@ defmodule MarsRovers.Plateau do
       {:error, :out_of_bounds}
     end
   end
+
 end
