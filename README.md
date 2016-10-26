@@ -53,23 +53,11 @@ MMRMMRMRRM
 Expected Output:
 1 3 N
 5 1 E
-
-# Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
-  1. Add `mars_rovers` to your list of dependencies in `mix.exs`:
-
-    ```elixir
-    def deps do
-      [{:mars_rovers, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `mars_rovers` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:mars_rovers]]
-    end
-    ```
+```
+# Running
+Start with `iex -S mix`
+To turn on visualizer and run some rovers:
+```
+:ok = GenEvent.add_handler(MarsRovers.EventManager, MarsRovers.PlateauVisualiserCLI, [])
+MarsRovers.Runner.start_link(delay: 50)
+```

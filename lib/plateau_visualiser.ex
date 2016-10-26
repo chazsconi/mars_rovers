@@ -3,7 +3,7 @@ defmodule MarsRovers.PlateauVisualiserCLI do
   alias MarsRovers.{Rover, Plateau}
   import IO.ANSI, only: [clear: 0, home: 0]
 
-  def handle_event(:rover_moved, state) do
+  def handle_event({:rover_moved, _rover_state}, state) do
     visualise
     {:ok, state}
   end

@@ -12,7 +12,8 @@ defmodule MarsRovers do
     opts = [strategy: :one_for_one, name: MarsRovers.Supervisor]
     {:ok, supervisor_pid} = Supervisor.start_link(children, opts)
 
-    :ok = GenEvent.add_handler(MarsRovers.EventManager, MarsRovers.PlateauVisualiserCLI, [])
+    # The CLI visualiser can be enabled by uncommenting this line
+    # :ok = GenEvent.add_handler(MarsRovers.EventManager, MarsRovers.PlateauVisualiserCLI, [])
     {:ok, supervisor_pid}
   end
 end

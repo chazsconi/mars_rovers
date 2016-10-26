@@ -4,7 +4,7 @@ defmodule MarsRovers.Rover do
   alias MarsRovers.Rover
   alias MarsRovers.Plateau
 
-  defstruct x: nil, y: nil, d: nil, commander: nil, command_queue: [], last_move_valid: true
+  defstruct id: nil, x: nil, y: nil, d: nil, commander: nil, command_queue: [], last_move_valid: true
 
   # Client API
   @doc "Creates a new rover"
@@ -14,8 +14,8 @@ defmodule MarsRovers.Rover do
   end
 
   def execute_command(pid) do
-    :ok = GenServer.call(pid, :execute_command)
-    GenEvent.notify(MarsRovers.EventManager, :rover_moved)
+    {:ok, new_state} = GenServer.call(pid, :execute_command)
+    GenEvent.notify(MarsRovers.EventManager, {:rover_moved, new_state})
     pid
   end
 
@@ -27,7 +27,7 @@ defmodule MarsRovers.Rover do
   # Server API
   def handle_call(:execute_command, _from, state) do
     state = do_execute_command(state)
-    {:reply, :ok, state}
+    {:reply, {:ok, state}, state}
   end
 
   def handle_call(:state, _from, state) do
