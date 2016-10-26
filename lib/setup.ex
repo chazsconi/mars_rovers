@@ -27,7 +27,6 @@ defmodule MarsRovers.Setup do
 
   def run_turns(0, _delay), do: :ok
   def run_turns(turns, delay) do
-    IO.puts "Turn start #{turns}"
     Plateau.run_turn
     slow_down(delay)
     run_turns(turns - 1, delay)

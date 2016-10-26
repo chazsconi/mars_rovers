@@ -26,9 +26,9 @@ defmodule MarsRovers.Runner do
     end
     rovers = [
       %Rover{id: 1, x: 10, y: 2, d: "N", commander: WallCommanderL},
-      # %Rover{id: 2, x: 3, y: 3, d: "E", commander: WallCommanderR},
-      # %Rover{id: 3, x: 8, y: 8, d: "W", commander: BounceCommander},
-      # %Rover{id: 4, x: 5, y: 5, d: "W", commander: RandomCommander}
+      %Rover{id: 2, x: 3, y: 3, d: "E", commander: WallCommanderR},
+      %Rover{id: 3, x: 8, y: 8, d: "W", commander: BounceCommander},
+      %Rover{id: 4, x: 5, y: 5, d: "W", commander: RandomCommander}
     ]
     [_rover1, _rover2] = Setup.deploy_rovers(rovers, -1, delay)
   end
