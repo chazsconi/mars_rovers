@@ -15,7 +15,7 @@ defmodule MarsRovers.Rover do
 
   def execute_command(pid) do
     :ok = GenServer.call(pid, :execute_command)
-    GenEvent.notify(:event_manager, :rover_moved)
+    GenEvent.notify(MarsRovers.EventManager, :rover_moved)
     pid
   end
 

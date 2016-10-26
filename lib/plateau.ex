@@ -2,17 +2,17 @@ defmodule MarsRovers.Plateau do
   use GenServer
   alias MarsRovers.Plateau
   alias MarsRovers.Rover
+  require Logger
   defstruct max_x: nil, max_y: nil, rovers: []
 
   defmodule VisualState do
     defstruct cells: %{}, size: {0,0}
   end
 
-  # Client API
   @doc "Creates the Plateau and registers the process as Plateau"
-  def create({max_x, max_y}) do
-    {:ok, _pid} = GenServer.start_link(Plateau,%Plateau{max_x: max_x, max_y: max_y}, [name: Plateau])
-    :ok
+  def start_link(opts) do
+    IO.puts "plateau start #{inspect opts}"
+    {:ok, _pid} = GenServer.start_link(Plateau, %Plateau{max_x: opts[:max_x], max_y: opts[:max_y]}, [name: Plateau])
   end
 
   @doc "Adds a rover to the Plateau"
